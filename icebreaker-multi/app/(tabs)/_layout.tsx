@@ -6,32 +6,40 @@ import { HapticTab } from '@/components/haptic-tab';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { AppColors } from '../../src/components/tokens';
 
-// ── Stable reference — defined outside the component so the object identity
-//    never changes between renders. React Navigation compares by reference;
-//    a new object on every render causes an infinite setState loop.
 const TAB_BAR_STYLE = {
-  backgroundColor: '#fff',
+  backgroundColor: AppColors.surface,
+  borderTopWidth: 1,
   borderTopColor: AppColors.border,
+  height: 62,
+  paddingBottom: 10,
+  paddingTop: 8,
+  elevation: 0,
 } as const;
 
 const SCREEN_OPTIONS: BottomTabNavigationOptions = {
   tabBarActiveTintColor: AppColors.primary,
+  tabBarInactiveTintColor: AppColors.textMuted,
   headerShown: false,
   tabBarButton: HapticTab,
   tabBarStyle: TAB_BAR_STYLE,
+  tabBarLabelStyle: {
+    fontSize: 11,
+    fontWeight: '600',
+    letterSpacing: 0.3,
+  },
 };
 
 const HOME_OPTIONS = {
   title: 'Home',
   tabBarIcon: ({ color }: { color: string }) => (
-    <IconSymbol size={26} name="house.fill" color={color} />
+    <IconSymbol size={24} name="house.fill" color={color} />
   ),
 } as const;
 
 const NEARBY_OPTIONS = {
   title: 'Nearby',
   tabBarIcon: ({ color }: { color: string }) => (
-    <IconSymbol size={26} name="antenna.radiowaves.left.and.right" color={color} />
+    <IconSymbol size={24} name="antenna.radiowaves.left.and.right" color={color} />
   ),
 } as const;
 

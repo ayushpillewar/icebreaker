@@ -16,6 +16,14 @@ import { VisibilityToggle } from '../../src/components/VisibilityToggle';
 import { UserSetup } from '../../src/components/UserSetup';
 import { AppColors } from '../../src/components/tokens';
 
+const AVATAR_PALETTE = ['#7B61FF', '#FF6B9D', '#00C9A7', '#FF8C42', '#4ECDC4', '#A78BFA', '#FFB347'];
+
+const getAvatarColor = (name: string): string => {
+  let h = 0;
+  for (let i = 0; i < name.length; i++) h += name.charCodeAt(i);
+  return AVATAR_PALETTE[h % AVATAR_PALETTE.length];
+};
+
 export default function HomeScreen() {
   const { user, isVisible, saveName, updateVisibility } = useUserProfile();
   const { isAdvertising } = useDiscovery();
@@ -29,6 +37,8 @@ export default function HomeScreen() {
       </SafeAreaView>
     );
   }
+
+  const avatarColor = getAvatarColor(user.name);
 
   const handleEditName = () => {
     setDraftName(user.name);
@@ -47,74 +57,87 @@ export default function HomeScreen() {
 
   return (
     <SafeAreaView style={styles.safe}>
-      <StatusBar barStyle="dark-content" backgroundColor={AppColors.background} />
-      <ScrollView contentContainerStyle={styles.scroll}>
+      <StatusBar barStyle="light-content" backgroundColor={AppColors.background} />
+      <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
 
-        {/* Header */}
-        <View style={styles.header}>
-          <View style={styles.avatar}>
-            <Text style={styles.avatarText}>{user.name.slice(0, 2).toUpperCase()}</Text>
+        {/* ── Hero header ── */}
+        <View style={styles.hero}>
+          <View style={[styles.avatarGlow, { shadowColor: avatarColor }]}>
+            <View style={[styles.avatar, { backgroundColor: avatarColor + '28', borderColor: avatarColor + '60' }]}>
+              <Text style={[styles.avatarText, { color: avatarColor }]}>
+                {user.name.slice(0, 2).toUpperCase()}
+              </Text>
+            </View>
           </View>
-          <View>
-            <Text style={styles.greeting}>Hello,</Text>
+          <View style={styles.heroText}>
+            <Text style={styles.greeting}>Good to see you,</Text>
             <Text style={styles.userName}>{user.name}</Text>
           </View>
+          <View style={[styles.statusPill, isAdvertising ? styles.statusActive : styles.statusIdle]}>
+            <View style={[styles.statusDot, isAdvertising ? styles.dotGreen : styles.dotGray]} />
+            <Text style={[styles.statusLabel, isAdvertising ? styles.statusLabelActive : styles.statusLabelIdle]}>
+              {isAdvertising ? 'Live' : 'Hidden'}
+            </Text>
+          </View>
         </View>
 
-        {/* Status banner */}
-        <View style={[styles.banner, isAdvertising ? styles.bannerActive : styles.bannerIdle]}>
-          <Text style={styles.bannerDot}>{isAdvertising ? '🟢' : '⚪'}</Text>
-          <Text style={styles.bannerText}>
-            {isAdvertising ? 'Broadcasting your presence nearby' : 'Currently hidden from others'}
-          </Text>
-        </View>
-
-        {/* Name card */}
-        <View style={styles.card}>
-          <Text style={styles.cardLabel}>Display Name</Text>
-          {editing ? (
-            <View style={styles.editRow}>
-              <TextInput
-                style={styles.editInput}
-                value={draftName}
-                onChangeText={setDraftName}
-                autoFocus
-                maxLength={30}
-                returnKeyType="done"
-                onSubmitEditing={handleSaveName}
-              />
-              <TouchableOpacity style={styles.saveBtn} onPress={handleSaveName}>
-                <Text style={styles.saveBtnText}>Save</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.cancelBtn} onPress={() => setEditing(false)}>
-                <Text style={styles.cancelBtnText}>Cancel</Text>
-              </TouchableOpacity>
-            </View>
-          ) : (
-            <View style={styles.nameRow}>
-              <Text style={styles.nameText}>{user.name}</Text>
-              <TouchableOpacity style={styles.editBtn} onPress={handleEditName}>
-                <Text style={styles.editBtnText}>Edit</Text>
-              </TouchableOpacity>
-            </View>
-          )}
-          <Text style={styles.cardHint}>
-            This is the name others will see when you are discoverable.
-          </Text>
-        </View>
-
-        {/* Visibility toggle */}
+        {/* ── Discovery ── */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Discovery</Text>
+          <Text style={styles.sectionLabel}>Discovery</Text>
           <VisibilityToggle isVisible={isVisible} onToggle={updateVisibility} />
         </View>
 
-        {/* Info section */}
-        <View style={styles.infoCard}>
-          <Text style={styles.infoTitle}>How it works</Text>
-          <Text style={styles.infoLine}>📡  Toggle visibility so your phone broadcasts via Bluetooth.</Text>
-          <Text style={styles.infoLine}>👋  Nearby users running IceBreaker will see your name.</Text>
-          <Text style={styles.infoLine}>💬  Tap a person in the Nearby tab to start chatting.</Text>
+        {/* ── Profile card ── */}
+        <View style={styles.section}>
+          <Text style={styles.sectionLabel}>Profile</Text>
+          <View style={styles.card}>
+            <Text style={styles.cardLabel}>Display Name</Text>
+            {editing ? (
+              <View style={styles.editRow}>
+                <TextInput
+                  style={styles.editInput}
+                  value={draftName}
+                  onChangeText={setDraftName}
+                  autoFocus
+                  maxLength={30}
+                  returnKeyType="done"
+                  onSubmitEditing={handleSaveName}
+                  placeholderTextColor={AppColors.textMuted}
+                />
+                <TouchableOpacity style={styles.saveBtn} onPress={handleSaveName}>
+                  <Text style={styles.saveBtnText}>Save</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.cancelBtn} onPress={() => setEditing(false)}>
+                  <Text style={styles.cancelBtnText}>✕</Text>
+                </TouchableOpacity>
+              </View>
+            ) : (
+              <View style={styles.nameRow}>
+                <Text style={styles.nameText}>{user.name}</Text>
+                <TouchableOpacity style={styles.editBtn} onPress={handleEditName}>
+                  <Text style={styles.editBtnText}>Edit</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+            <Text style={styles.cardHint}>Visible to people you discover nearby</Text>
+          </View>
+        </View>
+
+        {/* ── How it works ── */}
+        <View style={styles.section}>
+          <Text style={styles.sectionLabel}>How it works</Text>
+          <View style={styles.stepsCard}>
+            {[
+              { icon: '📡', text: 'Toggle visibility to broadcast your presence via Bluetooth.' },
+              { icon: '👋', text: 'Nearby IceBreaker users will see your display name.' },
+              { icon: '💬', text: 'Tap someone in the Nearby tab to start a private chat.' },
+            ].map((step, i) => (
+              <View key={i} style={[styles.step, i < 2 && styles.stepBorder]}>
+                <Text style={styles.stepIcon}>{step.icon}</Text>
+                <Text style={styles.stepText}>{step.text}</Text>
+              </View>
+            ))}
+          </View>
         </View>
 
       </ScrollView>
@@ -124,67 +147,129 @@ export default function HomeScreen() {
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: AppColors.background },
-  scroll: { padding: 20, gap: 16 },
+  scroll: { paddingHorizontal: 20, paddingTop: 24, paddingBottom: 36, gap: 24 },
 
-  header: { flexDirection: 'row', alignItems: 'center', gap: 14, marginBottom: 6 },
+  // Hero
+  hero: { flexDirection: 'row', alignItems: 'center', gap: 14, marginBottom: 4 },
+  avatarGlow: {
+    shadowOpacity: 0.55,
+    shadowRadius: 16,
+    shadowOffset: { width: 0, height: 0 },
+  },
   avatar: {
-    width: 58, height: 58, borderRadius: 29,
-    backgroundColor: AppColors.primary, justifyContent: 'center', alignItems: 'center',
+    width: 58,
+    height: 58,
+    borderRadius: 29,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
   },
-  avatarText: { color: '#fff', fontSize: 22, fontWeight: '700' },
-  greeting: { fontSize: 14, color: AppColors.textSecondary },
-  userName: { fontSize: 22, fontWeight: '700', color: AppColors.text },
-
-  banner: {
-    flexDirection: 'row', alignItems: 'center',
-    borderRadius: 12, paddingHorizontal: 14, paddingVertical: 10, gap: 8,
+  avatarText: { fontSize: 21, fontWeight: '800' },
+  heroText: { flex: 1 },
+  greeting: { fontSize: 13, color: AppColors.textSecondary },
+  userName: { fontSize: 21, fontWeight: '700', color: AppColors.text, marginTop: 1 },
+  statusPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 20,
+    gap: 5,
   },
-  bannerActive: { backgroundColor: '#DCFCE7' },
-  bannerIdle: { backgroundColor: AppColors.surface },
-  bannerDot: { fontSize: 16 },
-  bannerText: { fontSize: 13, color: AppColors.text, flex: 1 },
+  statusActive: { backgroundColor: AppColors.successBg, borderWidth: 1, borderColor: AppColors.success + '50' },
+  statusIdle: { backgroundColor: AppColors.surface, borderWidth: 1, borderColor: AppColors.border },
+  statusDot: { width: 7, height: 7, borderRadius: 3.5 },
+  dotGreen: { backgroundColor: AppColors.success },
+  dotGray: { backgroundColor: AppColors.textMuted },
+  statusLabel: { fontSize: 12, fontWeight: '600' },
+  statusLabelActive: { color: AppColors.success },
+  statusLabelIdle: { color: AppColors.textSecondary },
 
+  // Section
+  section: { gap: 10 },
+  sectionLabel: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: AppColors.textMuted,
+    textTransform: 'uppercase',
+    letterSpacing: 1.2,
+    marginLeft: 2,
+  },
+
+  // Card
   card: {
-    backgroundColor: AppColors.surface, borderRadius: 14, padding: 16, gap: 8,
-    shadowColor: '#000', shadowOpacity: 0.04, shadowRadius: 6,
-    shadowOffset: { width: 0, height: 2 }, elevation: 1,
+    backgroundColor: AppColors.surface,
+    borderRadius: 16,
+    padding: 16,
+    gap: 10,
+    borderWidth: 1,
+    borderColor: AppColors.border,
   },
   cardLabel: {
-    fontSize: 12, fontWeight: '600', color: AppColors.textSecondary,
-    textTransform: 'uppercase', letterSpacing: 0.5,
+    fontSize: 11,
+    fontWeight: '700',
+    color: AppColors.textSecondary,
+    textTransform: 'uppercase',
+    letterSpacing: 0.8,
   },
-  cardHint: { fontSize: 12, color: AppColors.textSecondary },
+  cardHint: { fontSize: 12, color: AppColors.textMuted },
   nameRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  nameText: { fontSize: 18, fontWeight: '600', color: AppColors.text, flex: 1 },
+  nameText: { fontSize: 17, fontWeight: '600', color: AppColors.text, flex: 1 },
   editBtn: {
-    backgroundColor: AppColors.primary + '18', borderRadius: 8,
-    paddingHorizontal: 12, paddingVertical: 6,
+    backgroundColor: AppColors.primaryGlow,
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderWidth: 1,
+    borderColor: AppColors.borderAccent,
   },
-  editBtnText: { color: AppColors.primary, fontWeight: '600', fontSize: 13 },
+  editBtnText: { color: AppColors.primaryLight, fontWeight: '600', fontSize: 13 },
   editRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   editInput: {
-    flex: 1, backgroundColor: AppColors.background, borderRadius: 8,
-    paddingHorizontal: 12, paddingVertical: 8, fontSize: 16, color: AppColors.text,
-    borderWidth: 1, borderColor: AppColors.border,
+    flex: 1,
+    backgroundColor: AppColors.surfaceElevated,
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 9,
+    fontSize: 16,
+    color: AppColors.text,
+    borderWidth: 1,
+    borderColor: AppColors.borderAccent,
   },
   saveBtn: {
-    backgroundColor: AppColors.primary, borderRadius: 8,
-    paddingHorizontal: 12, paddingVertical: 8,
+    backgroundColor: AppColors.primary,
+    borderRadius: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 9,
   },
-  saveBtnText: { color: '#fff', fontWeight: '600', fontSize: 13 },
-  cancelBtn: { paddingHorizontal: 8, paddingVertical: 8 },
-  cancelBtnText: { color: AppColors.textSecondary, fontSize: 13 },
+  saveBtnText: { color: '#fff', fontWeight: '700', fontSize: 13 },
+  cancelBtn: {
+    backgroundColor: AppColors.surfaceElevated,
+    borderRadius: 10,
+    paddingHorizontal: 10,
+    paddingVertical: 9,
+    borderWidth: 1,
+    borderColor: AppColors.border,
+  },
+  cancelBtnText: { color: AppColors.textSecondary, fontSize: 14 },
 
-  section: { gap: 10 },
-  sectionTitle: {
-    fontSize: 13, fontWeight: '600', color: AppColors.textSecondary,
-    textTransform: 'uppercase', letterSpacing: 0.5,
+  // Steps
+  stepsCard: {
+    backgroundColor: AppColors.surface,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: AppColors.border,
+    overflow: 'hidden',
   },
-
-  infoCard: {
-    backgroundColor: AppColors.primary + '0D', borderRadius: 14, padding: 16, gap: 8,
-    borderWidth: 1, borderColor: AppColors.primary + '30',
+  step: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    gap: 12,
   },
-  infoTitle: { fontSize: 14, fontWeight: '700', color: AppColors.primary },
-  infoLine: { fontSize: 13, color: AppColors.text, lineHeight: 20 },
+  stepBorder: { borderBottomWidth: 1, borderBottomColor: AppColors.border },
+  stepIcon: { fontSize: 20, marginTop: 1 },
+  stepText: { flex: 1, fontSize: 13, color: AppColors.textSecondary, lineHeight: 19 },
 });
+

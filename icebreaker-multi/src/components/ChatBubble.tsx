@@ -25,27 +25,33 @@ export function ChatBubble({ message }: Props) {
 }
 
 const styles = StyleSheet.create({
-  row: { paddingHorizontal: 12, marginVertical: 3 },
+  row: { paddingHorizontal: 16, marginVertical: 3 },
   rowRight: { alignItems: 'flex-end' },
   rowLeft: { alignItems: 'flex-start' },
   bubble: {
-    maxWidth: '78%',
-    borderRadius: 18,
+    maxWidth: '75%',
+    borderRadius: 20,
     paddingHorizontal: 14,
-    paddingVertical: 8,
+    paddingVertical: 9,
   },
   sent: {
     backgroundColor: AppColors.primary,
-    borderBottomRightRadius: 4,
+    borderBottomRightRadius: 5,
+    shadowColor: AppColors.primary,
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 2 },
   },
   received: {
     backgroundColor: AppColors.surface,
-    borderBottomLeftRadius: 4,
+    borderBottomLeftRadius: 5,
+    borderWidth: 1,
+    borderColor: AppColors.border,
   },
-  text: { fontSize: 15, lineHeight: 20 },
+  text: { fontSize: 15, lineHeight: 21 },
   sentText: { color: '#fff' },
   receivedText: { color: AppColors.text },
-  time: { fontSize: 10, marginTop: 3 },
-  sentTime: { color: 'rgba(255,255,255,0.65)', textAlign: 'right' },
-  receivedTime: { color: AppColors.textSecondary },
+  time: { fontSize: 10, marginTop: 4 },
+  sentTime: { color: 'rgba(255,255,255,0.55)', textAlign: 'right' },
+  receivedTime: { color: AppColors.textMuted },
 });

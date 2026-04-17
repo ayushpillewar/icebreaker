@@ -26,6 +26,8 @@ export function MessageInput({ onSend, disabled = false }: Props) {
     setText('');
   };
 
+  const canSend = !!text.trim() && !disabled;
+
   return (
     <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <View style={styles.container}>
@@ -33,8 +35,8 @@ export function MessageInput({ onSend, disabled = false }: Props) {
           style={styles.input}
           value={text}
           onChangeText={setText}
-          placeholder="Message…"
-          placeholderTextColor={AppColors.textSecondary}
+          placeholder={disabled ? 'Waiting for connection…' : 'Message…'}
+          placeholderTextColor={AppColors.textMuted}
           returnKeyType="send"
           onSubmitEditing={handleSend}
           editable={!disabled}
@@ -42,10 +44,10 @@ export function MessageInput({ onSend, disabled = false }: Props) {
           maxLength={500}
         />
         <TouchableOpacity
-          style={[styles.sendBtn, (!text.trim() || disabled) && styles.sendBtnDisabled]}
+          style={[styles.sendBtn, canSend ? styles.sendBtnActive : styles.sendBtnDisabled]}
           onPress={handleSend}
-          disabled={!text.trim() || disabled}>
-          <Ionicons name="send" size={20} color="#fff" />
+          disabled={!canSend}>
+          <Ionicons name="send" size={18} color="#fff" />
         </TouchableOpacity>
       </View>
     </KeyboardAvoidingView>
@@ -56,31 +58,40 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     alignItems: 'flex-end',
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    backgroundColor: AppColors.background,
-    borderTopWidth: StyleSheet.hairlineWidth,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    backgroundColor: AppColors.surface,
+    borderTopWidth: 1,
     borderTopColor: AppColors.border,
-    gap: 8,
+    gap: 10,
   },
   input: {
     flex: 1,
-    backgroundColor: AppColors.surface,
+    backgroundColor: AppColors.surfaceElevated,
     borderRadius: 22,
     paddingHorizontal: 16,
-    paddingTop: 10,
-    paddingBottom: 10,
+    paddingTop: 11,
+    paddingBottom: 11,
     fontSize: 15,
     color: AppColors.text,
     maxHeight: 120,
+    borderWidth: 1,
+    borderColor: AppColors.border,
   },
   sendBtn: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
-    backgroundColor: AppColors.primary,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  sendBtnDisabled: { backgroundColor: AppColors.border },
+  sendBtnActive: {
+    backgroundColor: AppColors.primary,
+    shadowColor: AppColors.primary,
+    shadowOpacity: 0.4,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 4,
+  },
+  sendBtnDisabled: { backgroundColor: AppColors.surfaceElevated },
 });

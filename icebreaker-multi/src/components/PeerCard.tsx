@@ -9,37 +9,70 @@ interface Props {
   onPress: (peer: Peer) => void;
 }
 
-const rssiToBars = (rssi: number): number => {
-  if (rssi >= -60) return 3;
-  if (rssi >= -75) return 2;
+const AVATAR_PALETTE = ['#7B61FF', '#FF6B9D', '#00C9A7', '#FF8C42', '#4ECDC4', '#A78BFA', '#FFB347'];
+
+const getAvatarColor = (name: string): string => {
+  let h = 0;
+  for (let i = 0; i < name.length; i++) h += name.charCodeAt(i);
+  return AVATAR_PALETTE[h % AVATAR_PALETTE.length];
+};
+
+const rssiToSignal = (rssi: number): number => {
+  if (rssi >= -60) return 4;
+  if (rssi >= -70) return 3;
+  if (rssi >= -80) return 2;
   return 1;
 };
 
 /** SRP: only renders a single nearby-peer card. */
 export function PeerCard({ peer, unreadCount = 0, onPress }: Props) {
-  const bars = rssiToBars(peer.rssi);
+  const bars = rssiToSignal(peer.rssi);
   const initials = peer.name.slice(0, 2).toUpperCase();
+  const color = getAvatarColor(peer.name);
 
   return (
-    <TouchableOpacity style={styles.card} onPress={() => onPress(peer)} activeOpacity={0.7}>
-      <View style={styles.avatar}>
-        <Text style={styles.avatarText}>{initials}</Text>
+    <TouchableOpacity
+      style={[styles.card, peer.isConnected && styles.cardConnected]}
+      onPress={() => onPress(peer)}
+      activeOpacity={0.75}>
+      {/* Avatar */}
+      <View style={[styles.avatar, { backgroundColor: color + '20', borderColor: color + '50' }]}>
+        <Text style={[styles.avatarText, { color }]}>{initials}</Text>
       </View>
 
+      {/* Info */}
       <View style={styles.info}>
         <Text style={styles.name}>{peer.name}</Text>
-        <Text style={styles.signal}>
-          {'▌'.repeat(bars)}{'░'.repeat(3 - bars)} {peer.rssi} dBm
-        </Text>
+        <View style={styles.signalRow}>
+          {[1, 2, 3, 4].map((i) => (
+            <View
+              key={i}
+              style={[
+                styles.bar,
+                { height: 4 + i * 2.5 },
+                i <= bars ? styles.barActive : styles.barInactive,
+              ]}
+            />
+          ))}
+          <Text style={styles.rssi}>{peer.rssi} dBm</Text>
+        </View>
       </View>
 
+      {/* Unread badge */}
       {unreadCount > 0 && (
         <View style={styles.badge}>
-          <Text style={styles.badgeText}>{unreadCount}</Text>
+          <Text style={styles.badgeText}>{unreadCount > 99 ? '99+' : unreadCount}</Text>
         </View>
       )}
 
-      {peer.isConnected && <View style={styles.connectedDot} />}
+      {/* Connected indicator */}
+      {peer.isConnected && (
+        <View style={styles.connectedPill}>
+          <Text style={styles.connectedText}>Connected</Text>
+        </View>
+      )}
+
+      <Text style={styles.chevron}>›</Text>
     </TouchableOpacity>
   );
 }
@@ -48,45 +81,60 @@ const styles = StyleSheet.create({
   card: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 14,
+    paddingHorizontal: 14,
+    paddingVertical: 13,
     backgroundColor: AppColors.surface,
-    borderRadius: 14,
+    borderRadius: 16,
     marginBottom: 10,
     gap: 12,
-    shadowColor: '#000',
-    shadowOpacity: 0.06,
-    shadowRadius: 6,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 2,
+    borderWidth: 1,
+    borderColor: AppColors.border,
+  },
+  cardConnected: {
+    borderColor: AppColors.success + '50',
+    shadowColor: AppColors.success,
+    shadowOpacity: 0.12,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 0 },
   },
   avatar: {
-    width: 46,
-    height: 46,
-    borderRadius: 23,
-    backgroundColor: AppColors.primary,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
     justifyContent: 'center',
     alignItems: 'center',
+    borderWidth: 1.5,
   },
-  avatarText: { color: '#fff', fontWeight: '700', fontSize: 16 },
-  info: { flex: 1 },
+  avatarText: { fontWeight: '700', fontSize: 16 },
+  info: { flex: 1, gap: 5 },
   name: { fontSize: 16, fontWeight: '600', color: AppColors.text },
-  signal: { fontSize: 12, color: AppColors.textSecondary, marginTop: 2 },
+  signalRow: { flexDirection: 'row', alignItems: 'flex-end', gap: 2 },
+  bar: { width: 4, borderRadius: 2 },
+  barActive: { backgroundColor: AppColors.success },
+  barInactive: { backgroundColor: AppColors.border },
+  rssi: { fontSize: 11, color: AppColors.textMuted, marginLeft: 5 },
   badge: {
     backgroundColor: AppColors.danger,
     borderRadius: 10,
-    minWidth: 20,
-    height: 20,
+    minWidth: 22,
+    height: 22,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 5,
+    paddingHorizontal: 6,
+    shadowColor: AppColors.danger,
+    shadowOpacity: 0.4,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 0 },
   },
   badgeText: { color: '#fff', fontSize: 11, fontWeight: '700' },
-  connectedDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: AppColors.success,
-    marginLeft: 4,
+  connectedPill: {
+    backgroundColor: AppColors.successBg,
+    borderRadius: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderWidth: 1,
+    borderColor: AppColors.success + '40',
   },
+  connectedText: { fontSize: 11, color: AppColors.success, fontWeight: '600' },
+  chevron: { fontSize: 20, color: AppColors.textMuted, fontWeight: '300' },
 });

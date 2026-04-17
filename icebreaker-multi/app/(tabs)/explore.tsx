@@ -70,17 +70,21 @@ export default function NearbyScreen() {
 
   return (
     <SafeAreaView style={styles.safe}>
-      <StatusBar barStyle="dark-content" backgroundColor={AppColors.background} />
+      <StatusBar barStyle="light-content" backgroundColor={AppColors.background} />
 
-      {/* Header bar */}
-      <View style={styles.topBar}>
+      {/* Header */}
+      <View style={styles.header}>
         <View>
           <Text style={styles.title}>Nearby</Text>
           <Text style={styles.subtitle}>
-            {isScanning ? 'Scanning for people…' : `${peers.length} found`}
+            {isScanning
+              ? 'Scanning for people…'
+              : peers.length === 0
+              ? 'No one found'
+              : `${peers.length} ${peers.length === 1 ? 'person' : 'people'} found`}
           </Text>
         </View>
-        <View style={styles.scanBadge}>
+        <View style={[styles.scanBadge, isScanning && styles.scanBadgeActive]}>
           {isScanning ? (
             <ActivityIndicator size="small" color={AppColors.primary} />
           ) : (
@@ -92,8 +96,9 @@ export default function NearbyScreen() {
       {/* Visibility reminder */}
       {!isVisible && (
         <View style={styles.hint}>
+          <Text style={styles.hintIcon}>💡</Text>
           <Text style={styles.hintText}>
-            💡 Enable visibility on the Home tab so others can see you too.
+            Enable visibility on the Home tab so others can see you too.
           </Text>
         </View>
       )}
@@ -103,6 +108,7 @@ export default function NearbyScreen() {
         data={peers}
         keyExtractor={(item) => item.id}
         contentContainerStyle={[styles.list, peers.length === 0 && styles.listEmpty]}
+        showsVerticalScrollIndicator={false}
         ListEmptyComponent={
           isScanning ? null : (
             <EmptyState
@@ -126,35 +132,65 @@ export default function NearbyScreen() {
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: AppColors.background },
-  topBar: {
+
+  header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
-    paddingTop: 12,
-    paddingBottom: 10,
+    paddingTop: 20,
+    paddingBottom: 14,
   },
-  title: { fontSize: 26, fontWeight: '700', color: AppColors.text },
+  title: { fontSize: 28, fontWeight: '800', color: AppColors.text, letterSpacing: -0.5 },
   subtitle: { fontSize: 13, color: AppColors.textSecondary, marginTop: 2 },
+
   scanBadge: {
-    width: 42, height: 42, borderRadius: 21,
-    backgroundColor: AppColors.surface, justifyContent: 'center', alignItems: 'center',
-    shadowColor: '#000', shadowOpacity: 0.06, shadowRadius: 4, shadowOffset: { width: 0, height: 2 },
-    elevation: 2,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: AppColors.surface,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: AppColors.border,
+  },
+  scanBadgeActive: {
+    borderColor: AppColors.borderAccent,
+    backgroundColor: AppColors.primaryGlow,
   },
   scanIcon: { fontSize: 20 },
+
   hint: {
-    marginHorizontal: 20, marginBottom: 8,
-    backgroundColor: AppColors.warning + '20',
-    borderRadius: 10, paddingHorizontal: 14, paddingVertical: 8,
-    borderWidth: 1, borderColor: AppColors.warning + '40',
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginHorizontal: 20,
+    marginBottom: 12,
+    backgroundColor: AppColors.warningBg,
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderWidth: 1,
+    borderColor: AppColors.warning + '40',
+    gap: 8,
   },
-  hintText: { fontSize: 12, color: AppColors.text, lineHeight: 18 },
-  list: { padding: 16 },
-  listEmpty: { flex: 1, justifyContent: 'center' },
+  hintIcon: { fontSize: 14, marginTop: 1 },
+  hintText: { flex: 1, fontSize: 13, color: AppColors.warning, lineHeight: 18 },
+
+  list: { paddingHorizontal: 20, paddingBottom: 24 },
+  listEmpty: { flex: 1 },
+
   permBtn: {
-    margin: 24, backgroundColor: AppColors.primary,
-    borderRadius: 14, paddingVertical: 15, alignItems: 'center',
+    margin: 24,
+    backgroundColor: AppColors.primary,
+    borderRadius: 14,
+    paddingVertical: 15,
+    alignItems: 'center',
+    shadowColor: AppColors.primary,
+    shadowOpacity: 0.4,
+    shadowRadius: 16,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 6,
   },
-  permBtnText: { color: '#fff', fontWeight: '700', fontSize: 16 },
+  permBtnText: { color: '#fff', fontWeight: '700', fontSize: 15 },
 });
+
