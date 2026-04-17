@@ -14,7 +14,7 @@ export default function RootLayout() {
      * DIP: ServiceProvider injects concrete services into the React tree via context.
      * Change `useMock={false}` on a dev build to engage real BLE hardware.
      */
-    <ServiceProvider useMock={true}>
+    <ServiceProvider useMock={false}>
       <Stack>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="chat/[peerId]" options={{ headerShown: true }} />

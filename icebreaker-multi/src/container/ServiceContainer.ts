@@ -44,23 +44,23 @@ export class ServiceContainer {
       // ── Real BLE wiring ────────────────────────────────────────────────
       // Requires a development build (not Expo Go).
       // Uncomment and import BleManager + concrete services when ready.
-      //
-      // const { BleManager } = require('react-native-ble-plx');
-      // const { BleScanner } = require('../services/ble/BleScanner');
-      // const { BleAdvertiser } = require('../services/ble/BleAdvertiser');
-      // const { BleConnector } = require('../services/ble/BleConnector');
-      // const { BleMessaging } = require('../services/ble/BleMessaging');
-      //
-      // const bleManager = new BleManager();
-      // const connector = new BleConnector(bleManager);
-      // const messaging = new BleMessaging(connector);
-      // this.scanner = new BleScanner(bleManager);
-      // this.advertiser = new BleAdvertiser();
-      // this.connector = connector;
-      // this.messageSender = messaging;
-      // this.messageReceiver = messaging;
+      
+      const { BleManager } = require('react-native-ble-plx');
+      const { BleScanner } = require('../services/ble/BleScanner');
+      const { BleAdvertiser } = require('../services/ble/BleAdvertiser');
+      const { BleConnector } = require('../services/ble/BleConnector');
+      const { BleMessaging } = require('../services/ble/BleMessaging');
+      
+      const bleManager = new BleManager();
+      const connector = new BleConnector(bleManager);
+      const messaging = new BleMessaging(connector);
+      this.scanner = new BleScanner(bleManager);
+      this.advertiser = new BleAdvertiser();
+      this.connector = connector;
+      this.messageSender = messaging;
+      this.messageReceiver = messaging;
       // ──────────────────────────────────────────────────────────────────
-      throw new Error('Real BLE mode: uncomment BLE wiring in ServiceContainer.ts');
+     // throw new Error('Real BLE mode: uncomment BLE wiring in ServiceContainer.ts');
     }
 
     this.userRepository = new AsyncStorageUserRepository();
