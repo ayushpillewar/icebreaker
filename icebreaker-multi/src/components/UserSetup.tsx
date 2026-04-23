@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   StyleSheet,
   ActivityIndicator,
+  ImageBackground,
 } from 'react-native';
 import { AppColors } from './tokens';
 
@@ -27,6 +28,10 @@ export function UserSetup({ onSave }: Props) {
   };
 
   return (
+    <ImageBackground
+      source={require('../../assets/images/background.png')}
+      style={styles.bg}
+      resizeMode="cover">
     <View style={styles.container}>
       <View style={styles.iconWrap}>
         <Text style={styles.iconEmoji}>❄️</Text>
@@ -66,17 +71,20 @@ export function UserSetup({ onSave }: Props) {
         )}
       </TouchableOpacity>
     </View>
+    </ImageBackground>
   );
 }
 
 const styles = StyleSheet.create({
+  bg: {
+    flex: 1,
+  },
   container: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 28,
     gap: 24,
-    backgroundColor: AppColors.background,
   },
   iconWrap: {
     width: 88,
