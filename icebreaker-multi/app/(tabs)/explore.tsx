@@ -35,7 +35,7 @@ export default function NearbyScreen() {
       startDiscovery();
     }
     return () => stopDiscovery();
-  }, [permissionState]);
+  }, [permissionState, startDiscovery, stopDiscovery]);
 
   const handlePeerPress = (peer: Peer) => {
     router.push(`/chat/${encodeURIComponent(peer.id)}?name=${encodeURIComponent(peer.name)}`);

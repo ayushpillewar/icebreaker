@@ -1,7 +1,28 @@
-import { BleManager } from 'react-native-ble-plx';
+import { BleManager, type Device } from 'react-native-ble-plx';
 import type { IScanner, PeerDiscoveredCallback, PeerLostCallback } from '../../interfaces/IScanner';
 import type { Peer } from '../../models/Peer';
 import { BLE_SERVICE_UUID, PEER_LOST_TIMEOUT_MS } from './constants';
+
+/**
+ * Extracts the IceBreaker display name from manufacturer-specific advertisement data.
+ * BleAdvertiser encodes the name as bytes after the 2-byte company ID.
+ * Falls back to the system device name if no valid manufacturer data is present.
+ */
+function parsePeerName(device: Device): string {
+  if (device.manufacturerData) {
+    try {
+      const bytes = Buffer.from(device.manufacturerData, 'base64');
+      // First 2 bytes = company ID, remainder = UTF-8 user name
+      if (bytes.length > 2) {
+        const name = bytes.slice(2).toString('utf8').replace(/\0/g, '').trim();
+        if (name.length > 0) return name;
+      }
+    } catch {
+      // malformed manufacturer data — fall through
+    }
+  }
+  return device.localName ?? device.name ?? 'Unknown';
+}
 
 /**
  * SRP: only responsible for BLE central scanning (not connecting or messaging).
@@ -29,7 +50,7 @@ export class BleScanner implements IScanner {
 
         const peer: Peer = {
           id: device.id,
-          name: device.localName ?? device.name ?? 'Unknown',
+          name: parsePeerName(device),
           rssi: device.rssi ?? -100,
           isConnected: false,
           lastSeen: new Date(),
