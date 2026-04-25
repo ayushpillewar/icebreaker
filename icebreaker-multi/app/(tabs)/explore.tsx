@@ -24,7 +24,7 @@ import type { Peer } from '../../src/models/Peer';
 export default function NearbyScreen() {
   const router = useRouter();
   const { permissionState, requestPermissions } = usePermissions();
-  const { startDiscovery, stopDiscovery, isScanning } = useDiscovery();
+  const { startDiscovery, stopDiscovery, isScanning, scanError } = useDiscovery();
   const peers = usePeerStore(useShallow((s) => s.getPeerList()));
   const unreadCount = useChatStore((s) => s.unreadCount);
   const isVisible = useUserStore((s) => s.isVisible);
@@ -92,6 +92,14 @@ export default function NearbyScreen() {
           )}
         </View>
       </View>
+
+      {/* BLE error banner */}
+      {!!scanError && (
+        <View style={styles.errorBanner}>
+          <Text style={styles.errorIcon}>⚠️</Text>
+          <Text style={styles.errorText}>{scanError}</Text>
+        </View>
+      )}
 
       {/* Visibility reminder */}
       {!isVisible && (
@@ -175,6 +183,22 @@ const styles = StyleSheet.create({
   },
   hintIcon: { fontSize: 14, marginTop: 1 },
   hintText: { flex: 1, fontSize: 13, color: AppColors.warning, lineHeight: 18 },
+
+  errorBanner: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginHorizontal: 20,
+    marginBottom: 12,
+    backgroundColor: '#3d1a1a',
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderWidth: 1,
+    borderColor: '#ff4d4d40',
+    gap: 8,
+  },
+  errorIcon: { fontSize: 14, marginTop: 1 },
+  errorText: { flex: 1, fontSize: 13, color: '#ff6b6b', lineHeight: 18 },
 
   list: { paddingHorizontal: 20, paddingBottom: 24 },
   listEmpty: { flex: 1 },

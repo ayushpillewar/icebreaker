@@ -1,4 +1,4 @@
-import type { IScanner, PeerDiscoveredCallback, PeerLostCallback } from '../../interfaces/IScanner';
+import type { IScanner, PeerDiscoveredCallback, PeerLostCallback, ScanErrorCallback } from '../../interfaces/IScanner';
 import type { Peer } from '../../models/Peer';
 
 const MOCK_PEERS: Peer[] = [
@@ -21,7 +21,7 @@ export class MockScanner implements IScanner {
     return this._isScanning;
   }
 
-  startScan(onDiscovered: PeerDiscoveredCallback, onLost?: PeerLostCallback): void {
+  startScan(onDiscovered: PeerDiscoveredCallback, onLost?: PeerLostCallback, _onError?: ScanErrorCallback): void {
     if (this._isScanning) return;
     this._isScanning = true;
     this.peerIndex = 0;

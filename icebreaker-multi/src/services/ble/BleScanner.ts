@@ -1,5 +1,5 @@
-import { BleManager, type Device } from 'react-native-ble-plx';
-import type { IScanner, PeerDiscoveredCallback, PeerLostCallback } from '../../interfaces/IScanner';
+import { BleManager, State, type Device, type Subscription } from 'react-native-ble-plx';
+import type { IScanner, PeerDiscoveredCallback, PeerLostCallback, ScanErrorCallback } from '../../interfaces/IScanner';
 import type { Peer } from '../../models/Peer';
 import { BLE_SERVICE_UUID, PEER_LOST_TIMEOUT_MS } from './constants';
 
@@ -31,6 +31,12 @@ function parsePeerName(device: Device): string {
 export class BleScanner implements IScanner {
   private _isScanning = false;
   private lostTimers = new Map<string, ReturnType<typeof setTimeout>>();
+  private stateSubscription: Subscription | null = null;
+  private pendingCallbacks: {
+    onDiscovered: PeerDiscoveredCallback;
+    onLost?: PeerLostCallback;
+    onError?: ScanErrorCallback;
+  } | null = null;
 
   constructor(private readonly bleManager: BleManager) {}
 
@@ -38,15 +44,51 @@ export class BleScanner implements IScanner {
     return this._isScanning;
   }
 
-  startScan(onDiscovered: PeerDiscoveredCallback, onLost?: PeerLostCallback): void {
+  startScan(
+    onDiscovered: PeerDiscoveredCallback,
+    onLost?: PeerLostCallback,
+    onError?: ScanErrorCallback,
+  ): void {
     if (this._isScanning) return;
     this._isScanning = true;
+    this.pendingCallbacks = { onDiscovered, onLost, onError };
+
+    // Unsubscribe any previous state listener
+    this.stateSubscription?.remove();
+
+    // Subscribe to BLE state changes and emit the current value immediately.
+    // This ensures we wait for PoweredOn before calling startDeviceScan, which
+    // fixes the silent failure that occurs when the scan starts before BT is ready.
+    this.stateSubscription = this.bleManager.onStateChange((state) => {
+      if (state === State.PoweredOn) {
+        this._startDeviceScan();
+      } else if (state === State.PoweredOff || state === State.Resetting) {
+        // BT was turned off — stop the hardware scan but keep _isScanning=true
+        // so we resume automatically if the user turns BT back on.
+        this.bleManager.stopDeviceScan();
+        this.lostTimers.forEach(clearTimeout);
+        this.lostTimers.clear();
+      } else if (state === State.Unauthorized || state === State.Unsupported) {
+        // Unrecoverable — stop fully and report the error.
+        this._stopInternal();
+        onError?.(new Error(`Bluetooth is ${state === State.Unauthorized ? 'not authorized' : 'not supported'} on this device.`));
+      }
+    }, true /* emitCurrentValue — triggers immediately with current BT state */);
+  }
+
+  private _startDeviceScan(): void {
+    if (!this.pendingCallbacks) return;
+    const { onDiscovered, onLost, onError } = this.pendingCallbacks;
 
     this.bleManager.startDeviceScan(
       [BLE_SERVICE_UUID],
       { allowDuplicates: true },
       (error, device) => {
-        if (error || !device) return;
+        if (error) {
+          onError?.(error);
+          return;
+        }
+        if (!device) return;
 
         const peer: Peer = {
           id: device.id,
@@ -71,10 +113,17 @@ export class BleScanner implements IScanner {
     );
   }
 
-  stopScan(): void {
+  private _stopInternal(): void {
     this.bleManager.stopDeviceScan();
+    this.stateSubscription?.remove();
+    this.stateSubscription = null;
+    this.pendingCallbacks = null;
     this.lostTimers.forEach(clearTimeout);
     this.lostTimers.clear();
     this._isScanning = false;
+  }
+
+  stopScan(): void {
+    this._stopInternal();
   }
 }

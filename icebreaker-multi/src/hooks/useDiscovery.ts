@@ -1,4 +1,4 @@
-import { useEffect, useCallback } from 'react';
+import { useEffect, useCallback, useState } from 'react';
 import { useServices } from '../container/ServiceProvider';
 import { usePeerStore } from '../store/peerStore';
 import { useUserStore } from '../store/userStore';
@@ -14,12 +14,15 @@ export function useDiscovery() {
   const isVisible = useUserStore((s) => s.isVisible);
   const isScanning = scanner.isScanning;
   const isAdvertising = advertiser.isAdvertising;
+  const [scanError, setScanError] = useState<string | null>(null);
 
   const startDiscovery = useCallback(() => {
     clearPeers();
+    setScanError(null);
     scanner.startScan(
       (peer) => upsertPeer(peer),
       (peerId) => removePeer(peerId),
+      (error) => setScanError(error.message),
     );
   }, [scanner, upsertPeer, removePeer, clearPeers]);
 
@@ -39,5 +42,5 @@ export function useDiscovery() {
     };
   }, [isVisible, user, advertiser]);
 
-  return { startDiscovery, stopDiscovery, isScanning, isAdvertising };
+  return { startDiscovery, stopDiscovery, isScanning, isAdvertising, scanError };
 }

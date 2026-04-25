@@ -30,7 +30,7 @@ app/
 
 
 ## use this command to build locally 
-- npx expo prebuild --platform ios --clean
+- npx expo prebuild --platform ios
 - cd ios && pod install && cd ..
 - npx expo run:ios
 - npx expo run:ios --configuration Debug
